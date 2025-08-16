@@ -1,68 +1,36 @@
-
-// import './App.css'
-import Login from './components/Auth/Login'
-import EmployDashboard from './components/Dashboard/EmployDashboard'
-import { useContext, useEffect, useState } from "react"
-import AdminDashboard from "./components/Dashboard/AdminDashboard"
-import { getLocalStorage, setLocalStorage } from "./utils/localStorage"
-import {AuthContext} from './context/AuthProvider';
-
+import { useEffect, useContext } from "react";
+import { AuthContext } from './context/AuthProvider';
+import Login from './components/Auth/Login';
+import EmployDashboard from './components/Dashboard/EmployDashboard';
+import AdminDashboard from "./components/Dashboard/AdminDashboard";
 
 function App() {
-  
-  // useEffect(()=>{
-  //   getLocalStorage()
-  // },)
- const [user,SetUser]=useState(null);
- const [userData,SetUserData]= useContext(AuthContext)
-  // const userData=useContext(AuthContext)
-  const [loggedInUserData,setLoggedInUserData]=useState(null);
+  const { authState, loading } = useContext(AuthContext);
 
-// console.log(data);
-useEffect(()=>{
- 
-  const loggedInUser= localStorage.getItem('loggedInUser');
-  if(loggedInUser){
-    const userData= JSON.parse(loggedInUser);
-    SetUser(userData.role)
-    setLoggedInUserData(userData.data);
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+      </div>
+    );
   }
-},[])
 
- const handlelogin=(email,password)=>{
-   if(email=='admin@example.com' && password==='123'){
-    SetUser('admin');
-    localStorage.setItem('loggedInUser',JSON.stringify({role:'admin'}))
-  }
-    // else if(email=='ruby@me.com' && password==='123'){
-    //   SetUser('employee');}
-    else if(userData){
-    const employee= userData.find((e)=> email==e.email && e.password==password) 
-   
-   if(employee){
-    SetUser('employee')
-    setLoggedInUserData(employee);
-    localStorage.setItem('loggedInUser',JSON.stringify({role:'employee',data:employee}))
-   }
-  }
-   else {
-    alert("Invalid Credentials")
-  }
-}
- 
+  const handleLogin = (email, password) => {
+    // This will be handled by the AuthProvider
+    // The actual login logic should be moved to AuthProvider
+  };
 
- 
-
-   return (
-    <>
-    {!user?<Login handlelogin={handlelogin}/>:''}
-    {user =='admin'?<AdminDashboard changeUser={SetUser}/>:(user=='employee'?<EmployDashboard changeUser={SetUser} data={loggedInUserData}/>:null ) }
-     
-      {/* <EmployDashboard/> */}
-      {/* <AdminDashboard/> */}
-      
-    </>
-  )
+  return (
+    <div className="min-h-screen bg-gray-100">
+      {!authState.isAuthenticated ? (
+        <Login handleLogin={handleLogin} />
+      ) : authState.role === 'admin' ? (
+        <AdminDashboard />
+      ) : (
+        <EmployDashboard data={authState.user} />
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
