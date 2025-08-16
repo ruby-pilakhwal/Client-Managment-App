@@ -30,6 +30,19 @@ const CreateTask = ({ isDarkMode }) => {
             return;
         }
 
+        // Get current data from localStorage
+        const employees = JSON.parse(localStorage.getItem('employees') || '[]');
+        const admin = JSON.parse(localStorage.getItem('admin') || '[]');
+        const allUsers = [...employees, ...admin];
+
+        // Find the target employee
+        const targetUser = allUsers.find(user => user.id.toString() === asignTo);
+
+        if (!targetUser) {
+            toast.error('Employee not found!');
+            return;
+        }
+
         const newTask = {
             id: Date.now(),
             taskTitle,
@@ -44,32 +57,38 @@ const CreateTask = ({ isDarkMode }) => {
             createdAt: new Date().toISOString(),
         };
 
-        const updatedUserData = userData.map(user => {
-            if (user.id === asignTo) {
-                return {
-                    ...user,
-                    tasks: [...user.tasks, newTask],
-                    taskCounts: {
-                        ...user.taskCounts,
-                        newTask: user.taskCounts.newTask + 1
-                    }
-                };
+        // Update the target user's tasks
+        const updatedTargetUser = {
+            ...targetUser,
+            tasks: [...(targetUser.tasks || []), newTask],
+            taskCounts: {
+                ...(targetUser.taskCounts || {
+                    newTask: 0,
+                    active: 0,
+                    completed: 0,
+                    failed: 0
+                }),
+                newTask: (targetUser.taskCounts?.newTask || 0) + 1
             }
-            return user;
-        });
+        };
 
-        const employeeExists = updatedUserData.some(
-            user => user.id === asignTo
+        // Update the user in the appropriate list (employees or admin)
+        const userType = targetUser.role === 'admin' ? 'admin' : 'employees';
+        const storedData = JSON.parse(localStorage.getItem(userType) || '[]');
+        const updatedStoredData = storedData.map(user => 
+            user.id === targetUser.id ? updatedTargetUser : user
         );
+        
+        // Save back to localStorage
+        localStorage.setItem(userType, JSON.stringify(updatedStoredData));
 
-        if (!employeeExists) {
-            toast.error('Employee not found!');
-            return;
-        }
-
+        // Update the context
+        const updatedUserData = allUsers.map(user => 
+            user.id === targetUser.id ? updatedTargetUser : user
+        );
         setUserData(updatedUserData);
-        localStorage.setItem('employees', JSON.stringify(updatedUserData));
 
+        // Reset form
         setFormData({
             taskTitle: '',
             taskDescription: '',
@@ -78,7 +97,7 @@ const CreateTask = ({ isDarkMode }) => {
             category: ''
         });
 
-        toast.success('Task created successfully!');
+        toast.success('Task created and assigned successfully!');
     };
 
     const inputClasses = `w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${

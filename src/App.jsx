@@ -1,4 +1,4 @@
-import { useEffect, useContext } from "react";
+import { useContext } from "react";
 import { AuthContext } from './context/AuthProvider';
 import Login from './components/Auth/Login';
 import EmployDashboard from './components/Dashboard/EmployDashboard';
@@ -15,15 +15,10 @@ function App() {
     );
   }
 
-  const handleLogin = (email, password) => {
-    // This will be handled by the AuthProvider
-    // The actual login logic should be moved to AuthProvider
-  };
-
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className={`min-h-screen ${authState.isAuthenticated ? 'bg-gray-100' : 'bg-gray-900'}`}>
       {!authState.isAuthenticated ? (
-        <Login handleLogin={handleLogin} />
+        <Login />
       ) : authState.role === 'admin' ? (
         <AdminDashboard />
       ) : (

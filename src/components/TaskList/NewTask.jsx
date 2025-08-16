@@ -1,6 +1,13 @@
 import React from "react";
 
 const NewTask = ({ data, onAccept }) => {
+  const handleAccept = (e) => {
+    e.stopPropagation();
+    if (typeof onAccept === 'function') {
+      onAccept(data.id);
+    }
+  };
+
   return (
     <div className="flex-shrink-0 w-[320px] p-6 bg-gradient-to-r from-blue-100 to-indigo-100 backdrop-blur-lg bg-opacity-30 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
       <div className="flex justify-between items-center mb-4">
@@ -13,7 +20,7 @@ const NewTask = ({ data, onAccept }) => {
       <p className="text-sm text-gray-700 mb-4">{data.taskDescription}</p>
       <div className="mt-6">
         <button
-          onClick={() => onAccept(data)}
+          onClick={handleAccept}
           className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium py-2 px-4 transition-colors duration-200"
         >
           Accept Task
