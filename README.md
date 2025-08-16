@@ -50,6 +50,25 @@ npm run dev
 - Sort tasks using the sorting options
 - Use drag and drop to reorder tasks
 
+- ## Authentication Note
+Currently, this project is front-end only. To log in, use the following credentials:
+
+- **Admin Login**
+  - Email: admin@example.com
+  - Password: 123
+- **Employee1 Login**
+  - Email: e@e.com
+  - Password: 123
+- **Employee2 Login**
+  - Email: employee2@example.com
+  - Password: 123
+- - **Employee3 Login**
+  - Email: employee3@example.com
+  - Password: 123
+    
+⚡️ Future Plan: Add backend authentication with Node.js + Express + MongoDB.
+
+
 ## Contributing
 
 1. Fork the repository
