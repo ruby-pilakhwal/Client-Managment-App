@@ -4,7 +4,7 @@ import CreateTask from "../other/CreateTask";
 import AllTask from "../other/AllTask";
 
 const AdminDashboard = (props) => {
-  // Retrieve dark mode preference from localStorage or default to false
+ 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const savedMode = localStorage.getItem('isDarkMode');
     return savedMode ? JSON.parse(savedMode) : false;
@@ -19,7 +19,7 @@ const AdminDashboard = (props) => {
   };
 
   useEffect(() => {
-    // Set the initial dark mode state based on localStorage
+    
     const savedMode = localStorage.getItem('isDarkMode');
     if (savedMode !== null) {
       setIsDarkMode(JSON.parse(savedMode));
