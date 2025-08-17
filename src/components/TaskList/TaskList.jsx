@@ -9,7 +9,7 @@ const TaskList = ({ data, updateTaskCounts }) => {
   const { userData, setUserData } = useContext(AuthContext);
   const [localTasks, setLocalTasks] = useState([]);
   
-  // Update local tasks when data prop changes
+ 
   useEffect(() => {
     setLocalTasks(data?.tasks || []);
   }, [data]);
@@ -19,10 +19,9 @@ const TaskList = ({ data, updateTaskCounts }) => {
   const handleTaskUpdate = (taskId, newStatus) => {
     if (!userData || !taskId) return;
 
-    // Create a deep copy of userData to avoid direct state mutation
     const updatedUserData = JSON.parse(JSON.stringify(userData));
     
-    // Find the current user in the userData array
+   
     const userIndex = updatedUserData.findIndex(user => 
       user.id === (currentUser.id || userData[0]?.id)
     );
@@ -34,14 +33,14 @@ const TaskList = ({ data, updateTaskCounts }) => {
 
     const user = updatedUserData[userIndex];
     
-    // Update the specific task
+  
     const taskIndex = (user.tasks || []).findIndex(task => task.id === taskId);
     if (taskIndex === -1) {
       console.error('Task not found');
       return;
     }
 
-    // Reset all status flags
+    
     const updatedTask = {
       ...user.tasks[taskIndex],
       newTask: false,
@@ -52,12 +51,12 @@ const TaskList = ({ data, updateTaskCounts }) => {
       status: newStatus
     };
 
-    // Update the task in the user's tasks array
+   
     const updatedTasks = [...user.tasks];
     updatedTasks[taskIndex] = updatedTask;
     user.tasks = updatedTasks;
 
-    // Update task counts
+  
     user.taskCounts = {
       newTask: updatedTasks.filter(t => t.newTask).length,
       active: updatedTasks.filter(t => t.active).length,
@@ -65,7 +64,7 @@ const TaskList = ({ data, updateTaskCounts }) => {
       failed: updatedTasks.filter(t => t.failed).length
     };
 
-    // Update localStorage
+  
     const userType = user.role === 'admin' ? 'admin' : 'employees';
     const storedData = JSON.parse(localStorage.getItem(userType) || '[]');
     const updatedStoredData = storedData.map(u => 
@@ -73,13 +72,10 @@ const TaskList = ({ data, updateTaskCounts }) => {
     );
     localStorage.setItem(userType, JSON.stringify(updatedStoredData));
 
-    // Update the context with the new state
     setUserData(updatedUserData);
     
-    // Update local tasks state to trigger re-render
     setLocalTasks(updatedTasks);
     
-    // Update task counts in parent component if the callback is provided
     if (updateTaskCounts) {
       updateTaskCounts(updatedTasks);
     }
