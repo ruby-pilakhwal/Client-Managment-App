@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { AuthContext } from '../../context/AuthProvider';
 import AcceptTask from "./AcceptTask";
 import CompleteTask from "./CompleteTask";
@@ -7,64 +7,85 @@ import FailedTask from "./FailedTask";
 
 const TaskList = ({ data, updateTaskCounts }) => {
   const { userData, setUserData } = useContext(AuthContext);
+  const [localTasks, setLocalTasks] = useState([]);
   
-  // Use data from props if available, otherwise fall back to context
-  const tasks = data?.tasks || [];
+  // Update local tasks when data prop changes
+  useEffect(() => {
+    setLocalTasks(data?.tasks || []);
+  }, [data]);
+
   const currentUser = data || {};
 
   const handleTaskUpdate = (taskId, newStatus) => {
-    if (!userData) return;
+    if (!userData || !taskId) return;
 
-    const updatedUserData = userData.map(user => {
-      // Use the current user's ID from props if available, otherwise use the first user
-      if (user.id === (currentUser.id || userData[0]?.id)) {
-        const updatedTasks = (user.tasks || []).map(task => {
-          if (task.id === taskId) {
-            return {
-              ...task,
-              newTask: newStatus === 'new',
-              active: newStatus === 'active',
-              completed: newStatus === 'completed',
-              failed: newStatus === 'failed'
-            };
-          }
-          return task;
-        });
+    // Create a deep copy of userData to avoid direct state mutation
+    const updatedUserData = JSON.parse(JSON.stringify(userData));
+    
+    // Find the current user in the userData array
+    const userIndex = updatedUserData.findIndex(user => 
+      user.id === (currentUser.id || userData[0]?.id)
+    );
 
-        const updatedUser = {
-          ...user,
-          tasks: updatedTasks,
-          taskCounts: {
-            newTask: updatedTasks.filter(t => t.newTask).length,
-            active: updatedTasks.filter(t => t.active).length,
-            completed: updatedTasks.filter(t => t.completed).length,
-            failed: updatedTasks.filter(t => t.failed).length
-          }
-        };
+    if (userIndex === -1) {
+      console.error('User not found in userData');
+      return;
+    }
 
-        // Update localStorage
-        const userType = user.role === 'admin' ? 'admin' : 'employees';
-        const storedData = JSON.parse(localStorage.getItem(userType) || '[]');
-        const updatedStoredData = storedData.map(u => 
-          u.id === user.id ? updatedUser : u
-        );
-        localStorage.setItem(userType, JSON.stringify(updatedStoredData));
+    const user = updatedUserData[userIndex];
+    
+    // Update the specific task
+    const taskIndex = (user.tasks || []).findIndex(task => task.id === taskId);
+    if (taskIndex === -1) {
+      console.error('Task not found');
+      return;
+    }
 
-        // Update task counts if the updateTaskCounts function is provided
-        if (updateTaskCounts) {
-          updateTaskCounts(updatedTasks);
-        }
+    // Reset all status flags
+    const updatedTask = {
+      ...user.tasks[taskIndex],
+      newTask: false,
+      active: false,
+      completed: false,
+      failed: false,
+      [newStatus]: true,
+      status: newStatus
+    };
 
-        return updatedUser;
-      }
-      return user;
-    });
+    // Update the task in the user's tasks array
+    const updatedTasks = [...user.tasks];
+    updatedTasks[taskIndex] = updatedTask;
+    user.tasks = updatedTasks;
 
-    // Update the context
+    // Update task counts
+    user.taskCounts = {
+      newTask: updatedTasks.filter(t => t.newTask).length,
+      active: updatedTasks.filter(t => t.active).length,
+      completed: updatedTasks.filter(t => t.completed).length,
+      failed: updatedTasks.filter(t => t.failed).length
+    };
+
+    // Update localStorage
+    const userType = user.role === 'admin' ? 'admin' : 'employees';
+    const storedData = JSON.parse(localStorage.getItem(userType) || '[]');
+    const updatedStoredData = storedData.map(u => 
+      u.id === user.id ? user : u
+    );
+    localStorage.setItem(userType, JSON.stringify(updatedStoredData));
+
+    // Update the context with the new state
     setUserData(updatedUserData);
+    
+    // Update local tasks state to trigger re-render
+    setLocalTasks(updatedTasks);
+    
+    // Update task counts in parent component if the callback is provided
+    if (updateTaskCounts) {
+      updateTaskCounts(updatedTasks);
+    }
   };
 
-  if (!tasks || tasks.length === 0) {
+  if (!localTasks || localTasks.length === 0) {
     return (
       <div className="text-center p-8 text-gray-400">
         No tasks found. Create a new task to get started!
@@ -77,7 +98,7 @@ const TaskList = ({ data, updateTaskCounts }) => {
       id="tasklist"
       className="flex flex-wrap gap-5 p-4 bg-gray-800 rounded-lg shadow-lg"
     >
-      {tasks.map((task, idx) => {
+      {localTasks.map((task, idx) => {
         const taskComponent = task.active ? (
           <AcceptTask 
             key={task.id || idx} 
