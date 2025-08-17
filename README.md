@@ -2,7 +2,7 @@
 
 A modern task management application built with React and Vite, featuring CRUD operations, task filtering, and sorting capabilities.
 
-live demo click here (https://client-managment-app-hp64.vercel.app/)
+live demo [click here](https://client-managment-app.vercel.app/)
 
 ## Features
 
